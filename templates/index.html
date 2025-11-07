@@ -43,34 +43,90 @@
     <p>暂无作业。</p>
 {% endif %}
 
-
     <script>
-        function addAssignment() {
-            const data = {
-                name: document.getElementById('name').value,
-                course: document.getElementById('course').value,
-                due_date: document.getElementById('due_date').value,
-                repeat: document.getElementById('repeat').value
-            };
-            fetch('/api/add', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            }).then(r => r.json()).then(res => {
-                if (res.success) location.reload();
-                else alert('添加失败: ' + (res.error || '未知错误'));
-            });
+    // 实时更新当前时间
+    function updateRealTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            weekday: 'long'
+        });
+        // 找到“当前时间：”后面的文本节点并更新
+        const timePara = document.querySelector('p');
+        if (timePara && timePara.innerHTML.includes('当前时间：')) {
+            timePara.innerHTML = '<strong>当前时间：</strong>' + timeString;
         }
+    }
 
-        function deleteAssignment(index) {
-            if (!confirm('确定删除？')) return;
-            fetch(`/api/delete/${index}`, { method: 'DELETE' })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success) location.reload();
-                    else alert('删除失败');
-                });
-        }
-    </script>
-</body>
-</html>
+    // 页面加载后启动
+    document.addEventListener('DOMContentLoaded', () => {
+        updateRealTime();
+        setInterval(updateRealTime, 1000);
+    });
+
+    // 原有功能
+    function addAssignment() {
+        const data = {
+            name: document.getElementById('name').value,
+            course: document.getElementById('course').value,
+            due_date: document.getElementById('due_date').value,
+            repeat: document.getElementById('repeat').value
+        };
+        fetch('/api/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(r => r.json()).then(res => {
+            if (res.success) location.reload();
+            else alert('添加失败: ' + (res.error || '未知错误'));
+        });
+    }
+
+    function deleteAssignment(index) {
+        if (!confirm('确定删除？')) return;
+        fetch(`/api/delete/${index}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) location.reload();
+                else alert('删除失败');
+            });
+    }
+</script>
+
+
+
+<!--    <script>-->
+<!--        function addAssignment() {-->
+<!--            const data = {-->
+<!--                name: document.getElementById('name').value,-->
+<!--                course: document.getElementById('course').value,-->
+<!--                due_date: document.getElementById('due_date').value,-->
+<!--                repeat: document.getElementById('repeat').value-->
+<!--            };-->
+<!--            fetch('/api/add', {-->
+<!--                method: 'POST',-->
+<!--                headers: {'Content-Type': 'application/json'},-->
+<!--                body: JSON.stringify(data)-->
+<!--            }).then(r => r.json()).then(res => {-->
+<!--                if (res.success) location.reload();-->
+<!--                else alert('添加失败: ' + (res.error || '未知错误'));-->
+<!--            });-->
+<!--        }-->
+
+<!--        function deleteAssignment(index) {-->
+<!--            if (!confirm('确定删除？')) return;-->
+<!--            fetch(`/api/delete/${index}`, { method: 'DELETE' })-->
+<!--                .then(r => r.json())-->
+<!--                .then(res => {-->
+<!--                    if (res.success) location.reload();-->
+<!--                    else alert('删除失败');-->
+<!--                });-->
+<!--        }-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
