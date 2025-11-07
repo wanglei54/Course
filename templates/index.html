@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>安庆师范大学作业提醒系统</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .assignment { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        input, button { padding: 8px; margin: 5px; }
+        .form-group { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>安庆师范大学作业提醒系统</h1>
+    <p><strong>当前时间：</strong>{{ current_time }}</p>
+
+    <h2>添加新作业</h2>
+    <div class="form-group">
+        <input type="text" id="name" placeholder="作业名称" />
+        <input type="text" id="course" placeholder="课程名称" />
+        <input type="date" id="due_date" />
+        <select id="repeat">
+            <option value="none">不重复</option>
+            <option value="weekly">每周重复</option>
+            <option value="monthly">每月重复</option>
+        </select>
+        <button onclick="addAssignment()">添加</button>
+    </div>
+
+    <h2>作业列表（按截止日期排序）</h2>
+{% if assignments %}
+    {% for a in assignments %}
+    <div class="assignment">
+        <strong>{{ a.course }}</strong> - {{ a.name }}<br>
+        截止: {{ a.due_date }}
+        {% if a.repeat_type != "none" %}
+            <span style="color: blue;">[重复: {{ a.repeat_type }}]</span>
+        {% endif %}
+        <button onclick="deleteAssignment({{ loop.index0 }})">删除</button>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>暂无作业。</p>
+{% endif %}
+
+
+    <script>
+        function addAssignment() {
+            const data = {
+                name: document.getElementById('name').value,
+                course: document.getElementById('course').value,
+                due_date: document.getElementById('due_date').value,
+                repeat: document.getElementById('repeat').value
+            };
+            fetch('/api/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            }).then(r => r.json()).then(res => {
+                if (res.success) location.reload();
+                else alert('添加失败: ' + (res.error || '未知错误'));
+            });
+        }
+
+        function deleteAssignment(index) {
+            if (!confirm('确定删除？')) return;
+            fetch(`/api/delete/${index}`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) location.reload();
+                    else alert('删除失败');
+                });
+        }
+    </script>
+</body>
+</html>
