@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>安庆师范大学作业提醒系统</title>
     <style>
+        /* —— 你的 CSS 样式保持不变 —— */
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
@@ -124,20 +125,32 @@
 <body>
 
 <h1>
-    <img src="https://cn.bing.com/images/search?view=detailV2&ccid=kkE91T27&id=C60707516C88537E8651517A037DFA7F36C1E833&thid=OIP.kkE91T279YpTVh84oXOXqwHaCP&mediaurl=https%3A%2F%2Fts1.tc.mm.bing.net%2Fth%2Fid%2FR-C.92413dd53dbbf58a53561f38a17397ab%3Frik%3DM%252bjBNn%252f6fQN6UQ%26riu%3Dhttp%253a%252f%252fwww.sciencehr.net%252fuploads%252faqsfdx%252flogo.jpg%26ehk%3DpJNXkmJ7ajXd8EXKrR8p5L92vxN2MANQnqncGWr9%252b5I%253d%26risl%3D%26pid%3DImgRaw%26r%3D0&exph=189&expw=624&q=%E5%AE%89%E5%BA%86%E5%B8%88%E8%8C%83%E5%A4%A7%E5%AD%A6%E6%A0%A1%E5%BE%BD&FORM=IRPRST&ck=B76C68318DE3550CB05440128A8B6A39&selectedIndex=0&itb=0&cw=2297&ch=1183&ajaxhist=0&ajaxserp=0" alt="安庆师范大学">
+    <!-- ✅ 替换为你的实际 Logo 直链 -->
+    <img src="https://github.com/wanglei54/Course/static/aqnu.png" alt="安庆师范大学">
     安庆师范大学作业提醒系统
 </h1>
 
-<div id="current-time-display">当前时间：{{ current_time }}</div>
+<p id="current-time-display"><strong>当前时间：</strong>{{ current_time }}</p>
 
+<h2>添加新作业</h2>
 <div class="form-group">
-    <!-- 这里添加你的表单元素 -->
+    <input type="text" id="name" placeholder="作业名称" />
+    <input type="text" id="course" placeholder="课程名称" />
+    <input type="date" id="due_date" />
+    <select id="repeat">
+        <option value="none">不重复</option>
+        <option value="weekly">每周重复</option>
+        <option value="monthly">每月重复</option>
+    </select>
+    <button onclick="addAssignment()">添加</button>
 </div>
 
-{% for a in assignments %}
+<h2>作业列表（按截止日期排序）</h2>
+{% if assignments %}
+    {% for a in assignments %}
     <div class="assignment">
         <strong>{{ a.course }}</strong> - {{ a.name }}<br>
-        <span class="due-date" {% if a.is_urgent %}style="color: #e74c3c;"{% endif %}>
+        <span class="due-date"{% if a.is_urgent %} style="color: #e74c3c;"{% endif %}>
             截止: {{ a.due_date }}
         </span>
         {% if a.repeat_type != "none" %}
@@ -145,13 +158,73 @@
         {% endif %}
         <button class="delete-btn" onclick="deleteAssignment({{ loop.index0 }})">删除</button>
     </div>
-{% endfor %}
+    {% endfor %}
+{% else %}
+    <p style="text-align:center; color:#888;">暂无作业。</p>
+{% endif %}
 
 <script>
-    // 示例脚本，用于处理前端交互逻辑，比如删除作业项
+    // 实时更新时间
+    function updateRealTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            weekday: 'long'
+        });
+        document.getElementById('current-time-display').innerHTML =
+            '<strong>当前时间：</strong>' + timeString;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateRealTime();
+        setInterval(updateRealTime, 1000);
+
+        // 设置默认日期为今天
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('due_date').value = today;
+    });
+
+    // 添加作业
+    function addAssignment() {
+        const data = {
+            name: document.getElementById('name').value.trim(),
+            course: document.getElementById('course').value.trim(),
+            due_date: document.getElementById('due_date').value,
+            repeat: document.getElementById('repeat').value
+        };
+        if (!data.name || !data.course || !data.due_date) {
+            alert('请填写完整信息');
+            return;
+        }
+        fetch('/api/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                location.reload();
+            } else {
+                alert('添加失败: ' + (res.error || ''));
+            }
+        });
+    }
+
+    // 删除作业
     function deleteAssignment(index) {
-        // 实现删除操作的逻辑
-        console.log('Delete assignment at index:', index);
+        if (!confirm('确定删除？')) return;
+        fetch(`/api/delete/${index}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) location.reload();
+                else alert('删除失败');
+            });
     }
 </script>
 
