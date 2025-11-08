@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>安庆师范大学作业提醒系统</title>
     <style>
-        /* —— 你的 CSS 样式保持不变 —— */
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
@@ -125,12 +125,13 @@
 <body>
 
 <h1>
-    <!-- ✅ 替换为你的实际 Logo 直链 -->
-    <img src="https://github.com/wanglei54/Course/static/aqnu.png" alt="安庆师范大学">
+    <!-- ✅ 使用 GitHub Raw 链接（请根据你的实际仓库修改） -->
+    <img src="static/aqnu.png" alt="">
     安庆师范大学作业提醒系统
 </h1>
 
-<p id="current-time-display"><strong>当前时间：</strong>{{ current_time }}</p>
+<!-- ✅ 时间完全由 JS 控制，不再使用 {{ current_time }} -->
+<div id="current-time-display"></div>
 
 <h2>添加新作业</h2>
 <div class="form-group">
@@ -164,7 +165,7 @@
 {% endif %}
 
 <script>
-    // 实时更新时间
+    // 实时更新当前时间（每秒刷新）
     function updateRealTime() {
         const now = new Date();
         const timeString = now.toLocaleString('zh-CN', {
@@ -180,16 +181,17 @@
             '<strong>当前时间：</strong>' + timeString;
     }
 
+    // 页面加载完成后启动时间更新
     document.addEventListener('DOMContentLoaded', () => {
         updateRealTime();
         setInterval(updateRealTime, 1000);
 
-        // 设置默认日期为今天
+        // 设置默认截止日期为今天
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('due_date').value = today;
     });
 
-    // 添加作业
+    // 添加作业（需后端支持 /api/add）
     function addAssignment() {
         const data = {
             name: document.getElementById('name').value.trim(),
@@ -216,7 +218,7 @@
         });
     }
 
-    // 删除作业
+    // 删除作业（需后端支持 /api/delete）
     function deleteAssignment(index) {
         if (!confirm('确定删除？')) return;
         fetch(`/api/delete/${index}`, { method: 'DELETE' })
