@@ -12,6 +12,7 @@
             margin: 0 auto;
             padding: 20px;
             color: #333;
+            min-height: 100vh;
         }
 
         h1 {
@@ -22,36 +23,48 @@
         }
 
         h1 img {
-            height: 40px;
+            height: 48px;
             vertical-align: middle;
-            margin-right: 12px;
+            margin-right: 16px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        #current-time-display {
+        .time-card {
             text-align: center;
-            background: #fff;
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            background: linear-gradient(to right, #2c5aa0, #3a7bd5);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
             font-weight: bold;
-            color: #2c5aa0;
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.25);
+            margin-bottom: 24px;
+            font-size: 1.1em;
         }
 
         .form-group {
             background: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             margin: 20px 0;
         }
 
+        .form-group > * {
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group > :last-child {
+            margin-bottom: 0;
+        }
+
         input, select, button {
-            padding: 10px;
-            margin: 5px;
+            padding: 12px;
             border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 15px;
         }
 
         input:focus, select:focus {
@@ -65,17 +78,24 @@
             color: white;
             border: none;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.1s;
+            font-weight: bold;
         }
 
         button:hover {
             background: #1a3a6c;
         }
 
+        button:active {
+            transform: scale(0.98);
+        }
+
         button.delete-btn {
             background: #e74c3c;
-            padding: 6px 12px;
-            font-size: 13px;
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            border-radius: 6px;
         }
 
         button.delete-btn:hover {
@@ -84,40 +104,76 @@
 
         .assignment {
             background: white;
-            padding: 16px;
-            margin: 12px 0;
-            border-radius: 10px;
+            padding: 18px;
+            margin: 16px 0;
+            border-radius: 12px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             border-left: 4px solid #2c5aa0;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .assignment:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .assignment strong {
+            font-size: 1.1em;
+            color: #1a3a6c;
         }
 
         .assignment .due-date {
             color: #555;
             font-weight: bold;
+            display: inline-block;
+            margin-top: 6px;
         }
 
-        .assignment .repeat-tag {
-            color: #2980b9;
+        .assignment .due-date.urgent {
+            color: #e74c3c;
+            background-color: #fff2f0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .repeat-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 0.85em;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #777;
             font-size: 0.9em;
-            margin-left: 8px;
         }
 
         @media (max-width: 600px) {
-            body { padding: 15px; }
-            input, select, button {
-                width: 100%;
-                margin: 4px 0;
-                box-sizing: border-box;
+            body {
+                padding: 15px;
             }
-            .form-group {
-                display: flex;
-                flex-direction: column;
+            h1 {
+                font-size: 1.5em;
+            }
+            h1 img {
+                height: 40px;
+                margin-right: 10px;
+            }
+            .assignment {
+                padding: 16px;
+            }
+            button.delete-btn {
+                padding: 6px 12px;
+                font-size: 13px;
             }
         }
     </style>
@@ -125,25 +181,23 @@
 <body>
 
 <h1>
-    <!-- ✅ 使用 GitHub Raw 链接（请根据你的实际仓库修改） -->
     <img src="https://raw.githubusercontent.com/wanglei54/Course/main/static/aqnu1.png" alt="安庆师范大学">
-    作业提醒系统
+    安庆师范大学作业提醒系统
 </h1>
 
-<!-- ✅ 时间完全由 JS 控制，不再使用 {{ current_time }} -->
-<div id="current-time-display"></div>
+<div id="current-time-display" class="time-card"></div>
 
 <h2>添加新作业</h2>
 <div class="form-group">
-    <input type="text" id="name" placeholder="作业名称" />
-    <input type="text" id="course" placeholder="课程名称" />
+    <input type="text" id="name" placeholder="作业名称（必填）" />
+    <input type="text" id="course" placeholder="课程名称（必填）" />
     <input type="date" id="due_date" />
     <select id="repeat">
         <option value="none">不重复</option>
         <option value="weekly">每周重复</option>
         <option value="monthly">每月重复</option>
     </select>
-    <button onclick="addAssignment()">添加</button>
+    <button onclick="addAssignment()">添加作业</button>
 </div>
 
 <h2>作业列表（按截止日期排序）</h2>
@@ -151,21 +205,27 @@
     {% for a in assignments %}
     <div class="assignment">
         <strong>{{ a.course }}</strong> - {{ a.name }}<br>
-        <span class="due-date"{% if a.is_urgent %} style="color: #e74c3c;"{% endif %}>
+        <span class="due-date{% if a.is_urgent %} urgent{% endif %}">
             截止: {{ a.due_date }}
         </span>
         {% if a.repeat_type != "none" %}
-            <span class="repeat-tag">[重复: {{ a.repeat_type }}]</span>
+            <span class="repeat-tag">重复: {{ '每周' if a.repeat_type == 'weekly' else '每月' }}</span>
         {% endif %}
         <button class="delete-btn" onclick="deleteAssignment({{ loop.index0 }})">删除</button>
     </div>
     {% endfor %}
 {% else %}
-    <p style="text-align:center; color:#888;">暂无作业。</p>
+    <div style="text-align:center; color:#888; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <div style="font-size:4em; margin-bottom:16px;">📝</div>
+        <p>暂无作业，快去添加吧！</p>
+    </div>
 {% endif %}
 
+<footer>
+    © 2025 安庆师范大学 · 作业提醒系统
+</footer>
+
 <script>
-    // 实时更新当前时间（每秒刷新）
     function updateRealTime() {
         const now = new Date();
         const timeString = now.toLocaleString('zh-CN', {
@@ -181,52 +241,64 @@
             '<strong>当前时间：</strong>' + timeString;
     }
 
-    // 页面加载完成后启动时间更新
     document.addEventListener('DOMContentLoaded', () => {
         updateRealTime();
         setInterval(updateRealTime, 1000);
 
-        // 设置默认截止日期为今天
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('due_date').value = today;
     });
 
-    // 添加作业（需后端支持 /api/add）
     function addAssignment() {
-        const data = {
-            name: document.getElementById('name').value.trim(),
-            course: document.getElementById('course').value.trim(),
-            due_date: document.getElementById('due_date').value,
-            repeat: document.getElementById('repeat').value
-        };
-        if (!data.name || !data.course || !data.due_date) {
-            alert('请填写完整信息');
+        const name = document.getElementById('name').value.trim();
+        const course = document.getElementById('course').value.trim();
+        const due_date = document.getElementById('due_date').value;
+        const repeat = document.getElementById('repeat').value;
+
+        if (!name || !course || !due_date) {
+            alert('请填写完整的作业信息！');
             return;
         }
+
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+
         fetch('/api/add', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
+            body: JSON.stringify({ name, course, due_date, repeat })
         })
         .then(r => r.json())
         .then(res => {
+            btn.disabled = false;
+            btn.textContent = '添加作业';
             if (res.success) {
                 location.reload();
             } else {
-                alert('添加失败: ' + (res.error || ''));
+                alert('添加失败: ' + (res.error || '未知错误'));
             }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.textContent = '添加作业';
+            alert('网络错误，请重试');
         });
     }
 
-    // 删除作业（需后端支持 /api/delete）
     function deleteAssignment(index) {
-        if (!confirm('确定删除？')) return;
+        if (!confirm('确定要删除这项作业吗？')) return;
+
         fetch(`/api/delete/${index}`, { method: 'DELETE' })
             .then(r => r.json())
             .then(res => {
-                if (res.success) location.reload();
-                else alert('删除失败');
-            });
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert('删除失败');
+                }
+            })
+            .catch(() => alert('网络错误，请重试'));
     }
 </script>
 
