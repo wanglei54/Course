@@ -4,129 +4,156 @@
     <meta charset="UTF-8">
     <title>安庆师范大学作业提醒系统</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .assignment { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; }
-        input, button { padding: 8px; margin: 5px; }
-        .form-group { margin: 10px 0; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a3a6c;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        h1 img {
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 12px;
+        }
+
+        #current-time-display {
+            text-align: center;
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+
+        .form-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin: 20px 0;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.2);
+        }
+
+        button {
+            background: #2c5aa0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1a3a6c;
+        }
+
+        button.delete-btn {
+            background: #e74c3c;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        button.delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .assignment {
+            background: white;
+            padding: 16px;
+            margin: 12px 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #2c5aa0;
+            transition: transform 0.2s;
+        }
+
+        .assignment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .assignment .due-date {
+            color: #555;
+            font-weight: bold;
+        }
+
+        .assignment .repeat-tag {
+            color: #2980b9;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            input, select, button {
+                width: 100%;
+                margin: 4px 0;
+                box-sizing: border-box;
+            }
+            .form-group {
+                display: flex;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>安庆师范大学作业提醒系统</h1>
-    <p><strong>当前时间：</strong>{{ current_time }}</p>
 
-    <h2>添加新作业</h2>
-    <div class="form-group">
-        <input type="text" id="name" placeholder="作业名称" />
-        <input type="text" id="course" placeholder="课程名称" />
-        <input type="date" id="due_date" />
-        <select id="repeat">
-            <option value="none">不重复</option>
-            <option value="weekly">每周重复</option>
-            <option value="monthly">每月重复</option>
-        </select>
-        <button onclick="addAssignment()">添加</button>
-    </div>
+<h1>
+    <img src="https://cn.bing.com/images/search?view=detailV2&ccid=kkE91T27&id=C60707516C88537E8651517A037DFA7F36C1E833&thid=OIP.kkE91T279YpTVh84oXOXqwHaCP&mediaurl=https%3A%2F%2Fts1.tc.mm.bing.net%2Fth%2Fid%2FR-C.92413dd53dbbf58a53561f38a17397ab%3Frik%3DM%252bjBNn%252f6fQN6UQ%26riu%3Dhttp%253a%252f%252fwww.sciencehr.net%252fuploads%252faqsfdx%252flogo.jpg%26ehk%3DpJNXkmJ7ajXd8EXKrR8p5L92vxN2MANQnqncGWr9%252b5I%253d%26risl%3D%26pid%3DImgRaw%26r%3D0&exph=189&expw=624&q=%E5%AE%89%E5%BA%86%E5%B8%88%E8%8C%83%E5%A4%A7%E5%AD%A6%E6%A0%A1%E5%BE%BD&FORM=IRPRST&ck=B76C68318DE3550CB05440128A8B6A39&selectedIndex=0&itb=0&cw=2297&ch=1183&ajaxhist=0&ajaxserp=0" alt="安庆师范大学">
+    安庆师范大学作业提醒系统
+</h1>
 
-    <h2>作业列表（按截止日期排序）</h2>
-{% if assignments %}
-    {% for a in assignments %}
+<div id="current-time-display">当前时间：{{ current_time }}</div>
+
+<div class="form-group">
+    <!-- 这里添加你的表单元素 -->
+</div>
+
+{% for a in assignments %}
     <div class="assignment">
         <strong>{{ a.course }}</strong> - {{ a.name }}<br>
-        截止: {{ a.due_date }}
+        <span class="due-date" {% if a.is_urgent %}style="color: #e74c3c;"{% endif %}>
+            截止: {{ a.due_date }}
+        </span>
         {% if a.repeat_type != "none" %}
-            <span style="color: blue;">[重复: {{ a.repeat_type }}]</span>
+            <span class="repeat-tag">[重复: {{ a.repeat_type }}]</span>
         {% endif %}
-        <button onclick="deleteAssignment({{ loop.index0 }})">删除</button>
+        <button class="delete-btn" onclick="deleteAssignment({{ loop.index0 }})">删除</button>
     </div>
-    {% endfor %}
-{% else %}
-    <p>暂无作业。</p>
-{% endif %}
+{% endfor %}
 
-    <script>
-    // 实时更新当前时间
-    function updateRealTime() {
-        const now = new Date();
-        const timeString = now.toLocaleString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            weekday: 'long'
-        });
-        // 找到“当前时间：”后面的文本节点并更新
-        const timePara = document.querySelector('p');
-        if (timePara && timePara.innerHTML.includes('当前时间：')) {
-            timePara.innerHTML = '<strong>当前时间：</strong>' + timeString;
-        }
-    }
-
-    // 页面加载后启动
-    document.addEventListener('DOMContentLoaded', () => {
-        updateRealTime();
-        setInterval(updateRealTime, 1000);
-    });
-
-    // 原有功能
-    function addAssignment() {
-        const data = {
-            name: document.getElementById('name').value,
-            course: document.getElementById('course').value,
-            due_date: document.getElementById('due_date').value,
-            repeat: document.getElementById('repeat').value
-        };
-        fetch('/api/add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        }).then(r => r.json()).then(res => {
-            if (res.success) location.reload();
-            else alert('添加失败: ' + (res.error || '未知错误'));
-        });
-    }
-
+<script>
+    // 示例脚本，用于处理前端交互逻辑，比如删除作业项
     function deleteAssignment(index) {
-        if (!confirm('确定删除？')) return;
-        fetch(`/api/delete/${index}`, { method: 'DELETE' })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) location.reload();
-                else alert('删除失败');
-            });
+        // 实现删除操作的逻辑
+        console.log('Delete assignment at index:', index);
     }
 </script>
 
-
-
-<!--    <script>-->
-<!--        function addAssignment() {-->
-<!--            const data = {-->
-<!--                name: document.getElementById('name').value,-->
-<!--                course: document.getElementById('course').value,-->
-<!--                due_date: document.getElementById('due_date').value,-->
-<!--                repeat: document.getElementById('repeat').value-->
-<!--            };-->
-<!--            fetch('/api/add', {-->
-<!--                method: 'POST',-->
-<!--                headers: {'Content-Type': 'application/json'},-->
-<!--                body: JSON.stringify(data)-->
-<!--            }).then(r => r.json()).then(res => {-->
-<!--                if (res.success) location.reload();-->
-<!--                else alert('添加失败: ' + (res.error || '未知错误'));-->
-<!--            });-->
-<!--        }-->
-
-<!--        function deleteAssignment(index) {-->
-<!--            if (!confirm('确定删除？')) return;-->
-<!--            fetch(`/api/delete/${index}`, { method: 'DELETE' })-->
-<!--                .then(r => r.json())-->
-<!--                .then(res => {-->
-<!--                    if (res.success) location.reload();-->
-<!--                    else alert('删除失败');-->
-<!--                });-->
-<!--        }-->
-<!--    </script>-->
-<!--</body>-->
-<!--</html>-->
+</body>
+</html>
