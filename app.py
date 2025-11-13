@@ -6,7 +6,7 @@ from functools import wraps
 
 # 硬编码账号密码（无中文，无特殊注释）
 TEACHER_USERNAME = "aqnu_teacher"
-TEACHER_PASSWORD = "J7$mQ!vL9@pK2#nR"
+TEACHER_PASSWORD = "123456"
 
 # 使用 /tmp 目录（Render 唯一可写位置）
 DATA_FILE = os.path.join(tempfile.gettempdir(), "assignments.txt")
