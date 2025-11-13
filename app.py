@@ -1,18 +1,28 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
-import tempfile  # ← 新增导入
+import tempfile
+from datetime import datetime
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
+from functools import wraps
 
-# 🔒 直接写死账号密码
+# 硬编码账号密码（无中文，无特殊注释）
 TEACHER_USERNAME = "aqnu_teacher"
 TEACHER_PASSWORD = "J7$mQ!vL9@pK2#nR"
 
-# ✅ 关键修复：使用 /tmp 目录（Render 唯一可写位置）
+# 使用 /tmp 目录（Render 唯一可写位置）
 DATA_FILE = os.path.join(tempfile.gettempdir(), "assignments.txt")
 
 app = Flask(__name__)
 app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"
 
-# ========== 工具函数 ==========
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- 工具函数 ---
 def parse_line(line):
     parts = [p.strip() for p in line.split('|')]
     if len(parts) < 3:
@@ -43,17 +53,7 @@ def save_assignments(assignments):
         for a in assignments:
             f.write(f"{a['name']}|{a['course']}|{a['due_date']}|{a['repeat_type']}\n")
 
-# ========== 登录装饰器 ==========
-from functools import wraps
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-# ========== 路由 ==========
+# --- 路由 ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -61,7 +61,6 @@ def login():
         password = request.form.get('password')
         if username == TEACHER_USERNAME and password == TEACHER_PASSWORD:
             session['logged_in'] = True
-            session['username'] = username
             return redirect(url_for('index'))
         else:
             flash("用户名或密码错误", "error")
@@ -77,7 +76,7 @@ def logout():
 def index():
     assignments = load_assignments()
     assignments.sort(key=lambda x: x['due_date'])
-    return render_template('index.html', assignments=assignments, current_time=datetime.now().strftime("%Y年%m月%d日 %H:%M:%S"))
+    return render_template('index.html', assignments=assignments)
 
 @app.route('/api/add', methods=['POST'])
 @login_required
@@ -94,15 +93,10 @@ def add_assignment():
     try:
         datetime.strptime(due_date, "%Y-%m-%d")
     except:
-        return jsonify({"error": "日期格式错误，应为 YYYY-MM-DD"}), 400
+        return jsonify({"error": "日期格式错误"}), 400
 
     assignments = load_assignments()
-    assignments.append({
-        "name": name,
-        "course": course,
-        "due_date": due_date,
-        "repeat_type": repeat if repeat in ("weekly", "monthly") else "none"
-    })
+    assignments.append({"name": name, "course": course, "due_date": due_date, "repeat_type": repeat})
     save_assignments(assignments)
     return jsonify({"success": True})
 
@@ -117,4 +111,4 @@ def delete_assignment(index):
     return jsonify({"error": "无效索引"}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
