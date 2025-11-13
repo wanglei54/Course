@@ -1,14 +1,16 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
-from datetime import datetime
+import tempfile  # ← 新增导入
 
-# 🔒 直接写死账号密码（简单粗暴，适合个人使用）
+# 🔒 直接写死账号密码
 TEACHER_USERNAME = "aqnu_teacher"
-TEACHER_PASSWORD = "J7$mQ!vL9@pK2#nR"  # 这就是你的强密码，别改！
+TEACHER_PASSWORD = "J7$mQ!vL9@pK2#nR"
 
-DATA_FILE = "assignments.txt"
+# ✅ 关键修复：使用 /tmp 目录（Render 唯一可写位置）
+DATA_FILE = os.path.join(tempfile.gettempdir(), "assignments.txt")
+
 app = Flask(__name__)
-app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"  # 固定 SECRET_KEY
+app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"
 
 # ========== 工具函数 ==========
 def parse_line(line):
