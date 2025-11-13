@@ -1,18 +1,31 @@
-# app.py
+# ====== DEBUG: 强制打印真实密码 ======
+import os
+print("\n" + "🚨 紧急调试信息 🚨".center(60, "="))
+print(f"系统读取到的 APP_USERNAME = [{os.environ.get('APP_USERNAME', '未设置')}]")
+print(f"系统读取到的 APP_PASSWORD = [{os.environ.get('APP_PASSWORD', '未设置')}]")
+print("=" * 60 + "\n")
+# ===================================
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
+
+# ✅ 必须是从环境变量读取，且有默认值（仅开发用）
+TEACHER_USERNAME = os.environ.get("APP_USERNAME", "admin")
+TEACHER_PASSWORD = os.environ.get("APP_PASSWORD", "change-me-immediately")
+
+print("\n" + "="*60)
+print("🔧 当前登录配置（启动时打印）:")
+print(f"   用户名: '{TEACHER_USERNAME}'")
+print(f"   密码:   '{TEACHER_PASSWORD}'")
+print("="*60 + "\n")
 
 DATA_FILE = "assignments.txt"
-# 简单的教师账号（生产环境应加密存储）
-TEACHER_USERNAME = "teacher"
-TEACHER_PASSWORD = "123456"
-
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here-please-change-in-prod")  # 必须设置 secret_key 才能用 session
 
-# 工具函数：解析一行数据
+app.secret_key = os.environ.get("SECRET_KEY") or "you-must-set-secret-key-in-production"
+
+# ========== 工具函数（保持不变）==========
 def parse_line(line):
     parts = [p.strip() for p in line.split('|')]
     if len(parts) < 3:
@@ -30,7 +43,6 @@ def parse_line(line):
     except:
         return None
 
-# 读取所有作业
 def load_assignments():
     if not os.path.exists(DATA_FILE):
         return []
@@ -39,13 +51,12 @@ def load_assignments():
     assignments = [parse_line(line) for line in lines if line.strip()]
     return [a for a in assignments if a]
 
-# 保存作业
 def save_assignments(assignments):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         for a in assignments:
             f.write(f"{a['name']}|{a['course']}|{a['due_date']}|{a['repeat_type']}\n")
 
-# 登录检查装饰器
+# ========== 登录装饰器（不变）==========
 from functools import wraps
 def login_required(f):
     @wraps(f)
@@ -55,7 +66,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ========== 路由 ==========
+# ========== 路由（不变）==========
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
