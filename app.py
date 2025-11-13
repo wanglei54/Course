@@ -1,31 +1,16 @@
-# ====== DEBUG: 强制打印真实密码 ======
-import os
-print("\n" + "🚨 紧急调试信息 🚨".center(60, "="))
-print(f"系统读取到的 APP_USERNAME = [{os.environ.get('APP_USERNAME', '未设置')}]")
-print(f"系统读取到的 APP_PASSWORD = [{os.environ.get('APP_PASSWORD', '未设置')}]")
-print("=" * 60 + "\n")
-# ===================================
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
-import json
 from datetime import datetime
 
-# ✅ 必须是从环境变量读取，且有默认值（仅开发用）
-TEACHER_USERNAME = os.environ.get("APP_USERNAME", "admin")
-TEACHER_PASSWORD = os.environ.get("APP_PASSWORD", "change-me-immediately")
-
-print("\n" + "="*60)
-print("🔧 当前登录配置（启动时打印）:")
-print(f"   用户名: '{TEACHER_USERNAME}'")
-print(f"   密码:   '{TEACHER_PASSWORD}'")
-print("="*60 + "\n")
+# 🔒 直接写死账号密码（简单粗暴，适合个人使用）
+TEACHER_USERNAME = "aqnu_teacher"
+TEACHER_PASSWORD = "J7$mQ!vL9@pK2#nR"  # 这就是你的强密码，别改！
 
 DATA_FILE = "assignments.txt"
 app = Flask(__name__)
+app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"  # 固定 SECRET_KEY
 
-app.secret_key = os.environ.get("SECRET_KEY") or "you-must-set-secret-key-in-production"
-
-# ========== 工具函数（保持不变）==========
+# ========== 工具函数 ==========
 def parse_line(line):
     parts = [p.strip() for p in line.split('|')]
     if len(parts) < 3:
@@ -56,7 +41,7 @@ def save_assignments(assignments):
         for a in assignments:
             f.write(f"{a['name']}|{a['course']}|{a['due_date']}|{a['repeat_type']}\n")
 
-# ========== 登录装饰器（不变）==========
+# ========== 登录装饰器 ==========
 from functools import wraps
 def login_required(f):
     @wraps(f)
@@ -66,7 +51,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ========== 路由（不变）==========
+# ========== 路由 ==========
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -130,5 +115,4 @@ def delete_assignment(index):
     return jsonify({"error": "无效索引"}), 400
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
