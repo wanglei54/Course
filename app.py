@@ -1,12 +1,16 @@
 # app.py
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import os
 import json
 from datetime import datetime, timedelta
 
 DATA_FILE = "assignments.txt"
+# 简单的教师账号（生产环境应加密存储）
+TEACHER_USERNAME = "teacher"
+TEACHER_PASSWORD = "123456"
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here-please-change-in-prod")  # 必须设置 secret_key 才能用 session
 
 # 工具函数：解析一行数据
 def parse_line(line):
@@ -41,14 +45,44 @@ def save_assignments(assignments):
         for a in assignments:
             f.write(f"{a['name']}|{a['course']}|{a['due_date']}|{a['repeat_type']}\n")
 
+# 登录检查装饰器
+from functools import wraps
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ========== 路由 ==========
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == TEACHER_USERNAME and password == TEACHER_PASSWORD:
+            session['logged_in'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            flash("用户名或密码错误", "error")
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     assignments = load_assignments()
-    # 按截止日期排序
     assignments.sort(key=lambda x: x['due_date'])
     return render_template('index.html', assignments=assignments, current_time=datetime.now().strftime("%Y年%m月%d日 %H:%M:%S"))
 
 @app.route('/api/add', methods=['POST'])
+@login_required
 def add_assignment():
     data = request.json
     name = data.get('name', '').strip()
@@ -75,6 +109,7 @@ def add_assignment():
     return jsonify({"success": True})
 
 @app.route('/api/delete/<int:index>', methods=['DELETE'])
+@login_required
 def delete_assignment(index):
     assignments = load_assignments()
     if 0 <= index < len(assignments):
@@ -83,11 +118,6 @@ def delete_assignment(index):
         return jsonify({"success": True})
     return jsonify({"error": "无效索引"}), 400
 
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
-# if __name__ == '__main__':
-#     app.run(debug=True, host='0.0.0.0', port=5000)

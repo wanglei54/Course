@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>安庆师范大学作业提醒系统</title>
+    <link rel="icon" href="/favicon.ico">
     <style>
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
@@ -20,6 +21,7 @@
             color: #1a3a6c;
             margin-bottom: 10px;
             font-size: 1.8em;
+            position: relative;
         }
 
         h1 img {
@@ -28,6 +30,22 @@
             margin-right: 16px;
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            font-size: 0.9em;
+            color: #555;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .user-info a {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 8px;
         }
 
         .time-card {
@@ -54,10 +72,6 @@
             margin-bottom: 8px;
             width: 100%;
             box-sizing: border-box;
-        }
-
-        .form-group > :last-child {
-            margin-bottom: 0;
         }
 
         input, select, button {
@@ -110,6 +124,8 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             border-left: 4px solid #2c5aa0;
             transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeInUp 0.4s ease-out forwards;
+            opacity: 0;
         }
 
         .assignment:hover {
@@ -135,6 +151,7 @@
             padding: 3px 8px;
             border-radius: 6px;
             font-weight: bold;
+            animation: pulse 2s infinite;
         }
 
         .repeat-tag {
@@ -157,24 +174,31 @@
             font-size: 0.9em;
         }
 
+        /* 动画 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(231, 76, 60, 0); }
+        }
+
+        /* 依次错开动画（最多10项） */
+        {% for i in range(10) %}
+        .assignment:nth-child({{ i + 1 }}) {
+            animation-delay: {{ i * 0.1 }}s;
+        }
+        {% endfor %}
+
         @media (max-width: 600px) {
-            body {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 1.5em;
-            }
-            h1 img {
-                height: 40px;
-                margin-right: 10px;
-            }
-            .assignment {
-                padding: 16px;
-            }
-            button.delete-btn {
-                padding: 6px 12px;
-                font-size: 13px;
-            }
+            body { padding: 15px; }
+            h1 { font-size: 1.5em; }
+            h1 img { height: 40px; margin-right: 10px; }
+            .user-info { position: static; transform: none; margin-top: 8px; text-align: center; }
+            .assignment { padding: 16px; }
+            button.delete-btn { padding: 6px 12px; font-size: 13px; }
         }
     </style>
 </head>
@@ -183,6 +207,10 @@
 <h1>
     <img src="https://raw.githubusercontent.com/wanglei54/Course/main/static/homework.png" alt="">
     作业提醒系统
+    <div class="user-info">
+        欢迎，{{ session.username }} |
+        <a href="{{ url_for('logout') }}">退出</a>
+    </div>
 </h1>
 
 <div id="current-time-display" class="time-card"></div>
@@ -241,12 +269,51 @@
             '<strong>当前时间：</strong>' + timeString;
     }
 
+    // 浏览器通知函数
+    function requestAndShowNotification() {
+        if (!("Notification" in window)) {
+            console.warn("当前浏览器不支持通知");
+            return;
+        }
+
+        if (Notification.permission === "granted") {
+            showNotification();
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    showNotification();
+                }
+            });
+        }
+    }
+
+    function showNotification() {
+        const notification = new Notification("⚠️ 紧急作业提醒", {
+            body: "您有即将截止的作业，请及时处理！",
+            icon: "https://raw.githubusercontent.com/wanglei54/Course/main/static/homework.png",
+            badge: "/favicon.ico"
+        });
+
+        // 点击通知跳转到页面顶部
+        notification.onclick = () => {
+            window.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         updateRealTime();
         setInterval(updateRealTime, 1000);
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('due_date').value = today;
+
+        // 检查是否有紧急作业
+        const hasUrgent = {% if assignments and any(a.is_urgent for a in assignments) %}true{% else %}false{% endif %};
+        if (hasUrgent) {
+            // 延迟触发，避免与页面加载冲突
+            setTimeout(requestAndShowNotification, 1000);
+        }
     });
 
     function addAssignment() {
