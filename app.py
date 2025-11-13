@@ -1,26 +1,13 @@
 import os
 import tempfile
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
-from functools import wraps
-
-# 硬编码账号密码（无中文，无特殊注释）
-TEACHER_USERNAME = "aqnu_teacher"
-TEACHER_PASSWORD = "123456"
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 
 # 使用 /tmp 目录（Render 唯一可写位置）
 DATA_FILE = os.path.join(tempfile.gettempdir(), "assignments.txt")
 
 app = Flask(__name__)
-app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+app.secret_key = "xH4#9Lm$2qP!vN8sKbY6&cRwEaZ3*FjU"  # 保留 secret_key（Flask 需要它来用 session/flash，但这里其实不用了）
 
 # --- 工具函数 ---
 def parse_line(line):
@@ -53,33 +40,15 @@ def save_assignments(assignments):
         for a in assignments:
             f.write(f"{a['name']}|{a['course']}|{a['due_date']}|{a['repeat_type']}\n")
 
-# --- 路由 ---
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == TEACHER_USERNAME and password == TEACHER_PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('index'))
-        else:
-            flash("用户名或密码错误", "error")
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
+# --- 主页面：直接显示作业列表 ---
 @app.route('/')
-@login_required
 def index():
     assignments = load_assignments()
     assignments.sort(key=lambda x: x['due_date'])
     return render_template('index.html', assignments=assignments)
 
+# --- 添加作业（公开接口）---
 @app.route('/api/add', methods=['POST'])
-@login_required
 def add_assignment():
     data = request.json
     name = data.get('name', '').strip()
@@ -100,8 +69,8 @@ def add_assignment():
     save_assignments(assignments)
     return jsonify({"success": True})
 
+# --- 删除作业（公开接口）---
 @app.route('/api/delete/<int:index>', methods=['DELETE'])
-@login_required
 def delete_assignment(index):
     assignments = load_assignments()
     if 0 <= index < len(assignments):
@@ -110,5 +79,7 @@ def delete_assignment(index):
         return jsonify({"success": True})
     return jsonify({"error": "无效索引"}), 400
 
+# --- 启动配置 ---
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
